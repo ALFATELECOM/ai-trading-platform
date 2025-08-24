@@ -13,7 +13,7 @@ const corsOptions = {
     origin: [
         'http://localhost:3000',
         'http://localhost:5173',
-        'https://your-frontend-domain.vercel.app', // Replace with your Vercel domain
+        'https://ai-trading-platform-alpha.vercel.app', // Your Vercel frontend URL
         'https://*.vercel.app'
     ],
     credentials: true,
@@ -46,9 +46,14 @@ if (process.env.NODE_ENV !== 'production') {
     try {
         wss = new WebSocket.Server({ port: 8083 });
         console.log('🔌 WebSocket server started on port 8083 (development only)');
+        
+        // Start broadcasting market data
+        setInterval(broadcastMarketData, 3000);
     } catch (error) {
         console.log('⚠️ WebSocket server failed to start on port 8083');
     }
+} else {
+    console.log('🌐 Production mode: WebSocket disabled, using polling');
 }
 
 // WebSocket connection handling
@@ -482,12 +487,43 @@ app.post('/api/portfolio/order', async (req, res) => {
 // Market Data Routes
 
 // Get market data
-app.get('/api/market-data', (req, res) => {
-    res.json({
-        success: true,
-        data: realTimeData,
-        timestamp: new Date().toISOString()
-    });
+app.get('/api/market-data', async (req, res) => {
+    try {
+        console.log('📊 Market data request received');
+        
+        if (zerodhaConnected) {
+            console.log('🔗 Fetching live data from Zerodha');
+            const data = await zerodhaAPI.getMarketData();
+            console.log('✅ Live data received:', data);
+            res.json({ success: true, data });
+        } else {
+            console.log('🧪 Using simulated market data');
+            // Update simulated data with small variations
+            const updatedData = {};
+            Object.keys(realTimeData).forEach(symbol => {
+                const basePrice = realTimeData[symbol].price;
+                const change = (Math.random() - 0.5) * 10;
+                const newPrice = basePrice + change;
+                const changePercent = (change / basePrice) * 100;
+                
+                updatedData[symbol] = {
+                    price: newPrice,
+                    change: change,
+                    changePercent: changePercent,
+                    timestamp: new Date().toISOString()
+                };
+            });
+            
+            // Update global data
+            realTimeData = { ...realTimeData, ...updatedData };
+            
+            console.log('✅ Simulated data sent:', updatedData);
+            res.json({ success: true, data: updatedData });
+        }
+    } catch (error) {
+        console.error('❌ Market data error:', error);
+        res.json({ success: true, data: realTimeData });
+    }
 });
 
 // Update market data
@@ -533,6 +569,17 @@ app.get('/api/market-data/historical/:symbol', async (req, res) => {
     }
 });
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        zerodhaConnected: zerodhaConnected,
+        tradingMode: tradingMode
+    });
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`🚀 AI Screen Time Trading Platform Backend running on port ${PORT}`);
@@ -546,4 +593,8 @@ app.listen(PORT, () => {
     if (wss) {
         console.log(`🔌 WebSocket server running on port ${wss.options.port} (development only)`);
     }
+    
+    console.log(`✨ Your service is live ✨`);
+    console.log(`///////////////////////////////`);
+    console.log(`Available at your primary URL https://ai-trading-platform-uc2j.onrender.com`);
 });
