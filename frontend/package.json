@@ -1,0 +1,28 @@
+{
+  "name": "ai-trading-frontend",
+  "version": "1.0.0",
+  "description": "AI Screen Time Trading Platform Frontend",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vite": "^4.4.9"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.4"
+  },
+  "keywords": [
+    "trading",
+    "zerodha",
+    "ai",
+    "indian-markets",
+    "live-data",
+    "screen-time",
+    "frontend",
+    "vercel"
+  ],
+  "author": "AI Trading System",
+  "license": "MIT"
+}

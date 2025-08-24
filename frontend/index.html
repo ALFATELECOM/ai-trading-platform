@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Screen Time Trading Platform - Indian Markets</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🤖 AI Screen Time Trading Platform</h1>
+            <p>Advanced AI-powered trading system for Indian markets with real-time Zerodha integration</p>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-indicator" id="connection-status"></div>
+                    <span id="connection-text">Disconnected</span>
+                </div>
+                <div class="status-item">
+                    <span>Mode: </span>
+                    <span id="trading-mode">Paper Trading</span>
+                </div>
+                <div class="status-item">
+                    <span>Last Update: </span>
+                    <span id="last-update">--:--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- Zerodha Connection -->
+            <div class="card">
+                <h2>🔗 Zerodha API Connection</h2>
+                <div class="connection-form">
+                    <div class="form-group">
+                        <label for="api-key">API Key</label>
+                        <input type="text" id="api-key" placeholder="Enter your Zerodha API key">
+                    </div>
+                    <div class="form-group">
+                        <label for="api-secret">API Secret</label>
+                        <input type="password" id="api-secret" placeholder="Enter your Zerodha API secret">
+                    </div>
+                    <div class="form-group">
+                        <label for="access-token">Access Token (Optional)</label>
+                        <input type="text" id="access-token" placeholder="Enter access token for live trading">
+                    </div>
+                    <div class="form-group">
+                        <label for="trading-mode-select">Trading Mode</label>
+                        <select id="trading-mode-select">
+                            <option value="paper">📝 Paper Trading (Virtual)</option>
+                            <option value="live">💰 Live Trading (Real Money)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="connectZerodha()">
+                        <span id="connect-btn-text">🔗 Connect to Zerodha</span>
+                    </button>
+                    <button class="btn btn-warning" onclick="generateLoginURL()">
+                        🔐 Generate Login URL
+                    </button>
+                </div>
+            </div>
+
+            <!-- Live Market Data -->
+            <div class="card">
+                <h2>📊 Live Market Data</h2>
+                <div class="market-data" id="market-data">
+                    <div class="market-item">
+                        <h3>NIFTY</h3>
+                        <div class="price" id="nifty-price">19,847.25</div>
+                        <div class="change positive" id="nifty-change">+125.50 (+0.64%)</div>
+                    </div>
+                    <div class="market-item">
+                        <h3>BANK NIFTY</h3>
+                        <div class="price" id="banknifty-price">44,568.75</div>
+                        <div class="change positive" id="banknifty-change">+368.25 (+0.83%)</div>
+                    </div>
+                    <div class="market-item">
+                        <h3>SENSEX</h3>
+                        <div class="price" id="sensex-price">66,123.45</div>
+                        <div class="change positive" id="sensex-change">+456.78 (+0.70%)</div>
+                    </div>
+                    <div class="market-item">
+                        <h3>FINNIFTY</h3>
+                        <div class="price" id="finnifty-price">20,234.50</div>
+                        <div class="change negative" id="finnifty-change">-45.25 (-0.22%)</div>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="refreshMarketData()" style="margin-top: 15px;">
+                    🔄 Refresh Market Data
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Trading Section -->
+        <div class="card full-width">
+            <h2>🤖 AI Trading Engine</h2>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="generateAISignals()">
+                    <span id="ai-btn-text">🧠 Generate AI Signals</span>
+                </button>
+                <button class="btn btn-success" onclick="executeAITrades()">
+                    ⚡ Execute AI Trades
+                </button>
+                <button class="btn btn-warning" onclick="getAIInsights()">
+                    📈 Get AI Insights
+                </button>
+            </div>
+            
+            <div class="grid">
+                <!-- AI Signals -->
+                <div>
+                    <h3>🎯 AI Trading Signals</h3>
+                    <div class="ai-signals" id="ai-signals">
+                        <div class="signal-item">
+                            <div class="signal-header">
+                                <span class="signal-type buy">BUY</span>
+                                <span class="signal-strength">Strength: 85%</span>
+                            </div>
+                            <div class="signal-reason">NIFTY - RSI oversold, MACD bullish crossover</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Insights -->
+                <div>
+                    <h3>📊 AI Market Insights</h3>
+                    <div class="insights-grid" id="ai-insights">
+                        <div class="insight-item">
+                            <div class="insight-value">5</div>
+                            <div class="insight-label">Total Signals</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-value">3</div>
+                            <div class="insight-label">Buy Signals</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-value">2</div>
+                            <div class="insight-label">Sell Signals</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="insight-value">85%</div>
+                            <div class="insight-label">Strong Signals</div>
+                        </div>
+                        <div class="insight-item">
+                            <div class="sentiment bullish" id="market-sentiment">Bullish</div>
+                            <div class="insight-label">Market Sentiment</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Portfolio Section -->
+        <div class="card full-width">
+            <h2>💼 Portfolio & Positions</h2>
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="getPortfolioStatus()">
+                    📊 Get Portfolio Status
+                </button>
+                <button class="btn btn-success" onclick="getAccountDetails()">
+                    👤 Account Details
+                </button>
+                <button class="btn btn-warning" onclick="placeOrder()">
+                    📝 Place Order
+                </button>
+            </div>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('positions')">Positions</button>
+                <button class="tab" onclick="showTab('account')">Account</button>
+                <button class="tab" onclick="showTab('holdings')">Holdings</button>
+            </div>
+            
+            <div id="positions-tab" class="tab-content active">
+                <div id="portfolio-content">
+                    <p style="color: #666; text-align: center;">Connect to Zerodha to view portfolio and positions</p>
+                </div>
+            </div>
+            
+            <div id="account-tab" class="tab-content">
+                <div id="account-content">
+                    <p style="color: #666; text-align: center;">Click "Account Details" to view account information</p>
+                </div>
+            </div>
+            
+            <div id="holdings-tab" class="tab-content">
+                <div id="holdings-content">
+                    <p style="color: #666; text-align: center;">Connect to Zerodha to view holdings</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
