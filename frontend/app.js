@@ -21,8 +21,22 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('🌐 API Base URL:', API_BASE_URL);
     console.log('🔌 WebSocket URL:', WS_URL);
     
+    // Show loading state
+    showLoadingState();
+    
+    // Initialize immediately with fallback data
+    useFallbackData();
     updateStatus();
-    startMarketDataPolling();
+    
+    // Hide loading state immediately for faster perceived performance
+    setTimeout(() => {
+        hideLoadingState();
+    }, 500);
+    
+    // Start market data polling after a short delay
+    setTimeout(() => {
+        startMarketDataPolling();
+    }, 2000);
     
     // Connect WebSocket only in development
     if (WS_URL) {
@@ -30,21 +44,56 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Show loading state
+function showLoadingState() {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loading-overlay';
+    loadingDiv.innerHTML = `
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading AI Trading Platform...</p>
+        </div>
+    `;
+    document.body.appendChild(loadingDiv);
+}
+
+// Hide loading state
+function hideLoadingState() {
+    const loadingDiv = document.getElementById('loading-overlay');
+    if (loadingDiv) {
+        loadingDiv.style.opacity = '0';
+        setTimeout(() => {
+            loadingDiv.remove();
+        }, 500);
+    }
+}
+
 // Start polling for market data (production fallback)
 function startMarketDataPolling() {
     console.log('📡 Starting market data polling...');
     
-    // Initial fetch
-    fetchMarketData();
+    // Initial fetch with timeout
+    fetchMarketDataWithTimeout();
     
-    // Poll market data every 5 seconds
-    setInterval(fetchMarketData, 5000);
+    // Poll market data every 15 seconds (optimized frequency)
+    setInterval(fetchMarketDataWithTimeout, 15000);
 }
 
-// Fetch market data from backend
-async function fetchMarketData() {
+// Fetch market data with timeout
+async function fetchMarketDataWithTimeout() {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced to 3 second timeout
+    
     try {
-        const response = await fetch(`${API_BASE_URL}/api/market-data`);
+        const response = await fetch(`${API_BASE_URL}/api/market-data`, {
+            signal: controller.signal,
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
+        clearTimeout(timeoutId);
+        
         const data = await response.json();
         
         if (data.success) {
@@ -52,18 +101,29 @@ async function fetchMarketData() {
             updateMarketData(data.data);
         } else {
             console.log('❌ Market data fetch failed:', data.error);
+            useFallbackData();
         }
     } catch (error) {
+        clearTimeout(timeoutId);
         console.log('❌ Market data polling failed:', error.message);
-        // Use fallback data if API fails
-        const fallbackData = {
-            'NIFTY': { price: 19847.25, change: 125.50, changePercent: 0.64 },
-            'BANKNIFTY': { price: 44568.75, change: 368.25, changePercent: 0.83 },
-            'SENSEX': { price: 66123.45, change: 456.78, changePercent: 0.70 },
-            'FINNIFTY': { price: 20234.50, change: -45.25, changePercent: -0.22 }
-        };
-        updateMarketData(fallbackData);
+        useFallbackData();
     }
+}
+
+// Use fallback data immediately
+function useFallbackData() {
+    const fallbackData = {
+        'NIFTY': { price: 19847.25, change: 125.50, changePercent: 0.64 },
+        'BANKNIFTY': { price: 44568.75, change: 368.25, changePercent: 0.83 },
+        'SENSEX': { price: 66123.45, change: 456.78, changePercent: 0.70 },
+        'FINNIFTY': { price: 20234.50, change: -45.25, changePercent: -0.22 }
+    };
+    updateMarketData(fallbackData);
+}
+
+// Fetch market data from backend (legacy function - kept for compatibility)
+async function fetchMarketData() {
+    fetchMarketDataWithTimeout();
 }
 
 // Connect to Zerodha
