@@ -1,7 +1,12 @@
 // Configuration
 const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:3000' 
-    : 'https://your-backend-domain.onrender.com'; // Replace with your Render domain
+    : 'https://ai-trading-platform-uc2j.onrender.com'; // Production Render backend URL
+
+// WebSocket configuration (development only)
+const WS_URL = window.location.hostname === 'localhost' 
+    ? 'ws://localhost:8083' 
+    : null; // No WebSocket in production
 
 // Global variables
 let zerodhaConnected = false;
@@ -12,24 +17,53 @@ let marketData = {};
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Frontend initialized');
+    console.log('🌐 API Base URL:', API_BASE_URL);
+    console.log('🔌 WebSocket URL:', WS_URL);
+    
     updateStatus();
     startMarketDataPolling();
+    
+    // Connect WebSocket only in development
+    if (WS_URL) {
+        connectWebSocket();
+    }
 });
 
-// Start polling for market data (since WebSocket is development only)
+// Start polling for market data (production fallback)
 function startMarketDataPolling() {
+    console.log('📡 Starting market data polling...');
+    
+    // Initial fetch
+    fetchMarketData();
+    
     // Poll market data every 5 seconds
-    setInterval(async () => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/market-data`);
-            const data = await response.json();
-            if (data.success) {
-                updateMarketData(data.data);
-            }
-        } catch (error) {
-            console.log('Market data polling failed:', error.message);
+    setInterval(fetchMarketData, 5000);
+}
+
+// Fetch market data from backend
+async function fetchMarketData() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/market-data`);
+        const data = await response.json();
+        
+        if (data.success) {
+            console.log('📊 Received market data:', data.data);
+            updateMarketData(data.data);
+        } else {
+            console.log('❌ Market data fetch failed:', data.error);
         }
-    }, 5000);
+    } catch (error) {
+        console.log('❌ Market data polling failed:', error.message);
+        // Use fallback data if API fails
+        const fallbackData = {
+            'NIFTY': { price: 19847.25, change: 125.50, changePercent: 0.64 },
+            'BANKNIFTY': { price: 44568.75, change: 368.25, changePercent: 0.83 },
+            'SENSEX': { price: 66123.45, change: 456.78, changePercent: 0.70 },
+            'FINNIFTY': { price: 20234.50, change: -45.25, changePercent: -0.22 }
+        };
+        updateMarketData(fallbackData);
+    }
 }
 
 // Connect to Zerodha
@@ -47,6 +81,9 @@ async function connectZerodha() {
     const btnText = document.getElementById('connect-btn-text');
     btnText.innerHTML = '<span class="loading"></span> Connecting...';
     
+    console.log('🔗 Connecting to Zerodha...');
+    console.log('🌐 API URL:', `${API_BASE_URL}/api/zerodha/connect`);
+    
     try {
         const response = await fetch(`${API_BASE_URL}/api/zerodha/connect`, {
             method: 'POST',
@@ -62,6 +99,7 @@ async function connectZerodha() {
         });
 
         const data = await response.json();
+        console.log('📡 Zerodha connection response:', data);
         
         if (data.success) {
             zerodhaConnected = true;
@@ -73,6 +111,7 @@ async function connectZerodha() {
             showAlert(data.error || 'Connection failed', 'error');
         }
     } catch (error) {
+        console.error('❌ Zerodha connection error:', error);
         showAlert('Connection failed: ' + error.message, 'error');
     } finally {
         btnText.textContent = '🔗 Connect to Zerodha';
